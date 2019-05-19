@@ -24,12 +24,30 @@ int main (int argc, char *argv[])
 }
 int* matrixVectorMultParallelMPI(int** mat, int* vector, int dim, int size, int myRank)
 {
+    /// Dividing the matrix into rows
     int rowTileWidth = dim / size;
     int myRowOffset = myRank * rowTileWidth;
 
-    int* recvBuffer = (int*)malloc(rowTileWidth * dim * sizeof(int));
-    MPI_Scatter(mat
-            , dim * rowTileWidth, MPI_INT, recvBuffer
+    int** recvMatBuffer = (int**)malloc(rowTileWidth * dim * sizeof(int)); // Allocated 1 continuous array for all rows
+    int* recvVecBuffer = (int*)malloc(dim * sizeof(int));
+    int* outVecBuffer = (int*)malloc(dim * sizeof(int));
+    int* computedVector = (int*)malloc(rowTileWidth * sizeof(int));
+    // TODO: This only accepts divisible dimension. use scatterV later
+    /// Master scatters, so master should have it
+    MPI_Scatter(*mat
+            , dim * rowTileWidth, MPI_INT, *recvMatBuffer
             , dim * rowTileWidth, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(vector
+            , dim, MPI_INT, 0, MPI_COMM_WORLD);
+
+    /// Compute
+    for (int i = 0; i < rowTileWidth; ++i) {
+        for (int j = 0; j < dim; ++j) {
+            computedVector[i] += recvMatBuffer[i][j] * recvVecBuffer[j];
+        }
+    }
+
+    MPI_Gather(computedVector, rowTileWidth, MPI_INT, outVecBuffer, rowTileWidth
+            , MPI_INT, myRank,  MPI_COMM_WORLD);
 
 }
