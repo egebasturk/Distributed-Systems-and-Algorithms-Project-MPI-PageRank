@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(Distributed_Systems_and_Algorithms_Project_MPI_PageRank)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O0")
 
 
 #[[find_package( Boost REQUIRED COMPONENTS graph)
@@ -15,7 +16,9 @@ if(Boost_FOUND)
     else()
         message(FATAL_ERROR "Boost not found")
 endif()]]
-
+include_directories(/usr/include/mpi/)
+link_libraries(mpi)
+link_libraries(m)
 
 add_executable(Distributed_Systems_and_Algorithms_Project_MPI_PageRank main.cpp Util.cpp Util.h)
 
