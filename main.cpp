@@ -1,5 +1,6 @@
-#include <iostream>
 #include "Util.h"
+using namespace std;
+int* matrixVectorMultParallelMPI(int** mat, int* vector, int dim, int size, int myRank);
 
 int main (int argc, char *argv[])
 {
@@ -11,12 +12,19 @@ int main (int argc, char *argv[])
     MPI_Comm_rank (MPI_COMM_WORLD, &rank);
     int color;
 
-
     // TODO: read these
     int* vector = NULL;
-    int** matrix = NULL;
+    int* matrix = NULL;
+    if (rank == 0)
+    {
+        string s1 = "../mat1_4x4";
+        string s2 = "../vect1_4";
+        readMatrixFromFile(&matrix, s1.c_str(), &N);
+        readVectorFromFile(&vector, s2.c_str(), &N);
+    }
     // TODO: Bcast according to read dimension
     MPI_Bcast(&N, 1, MPI_INT, 0, MPI_COMM_WORLD);   // Bcast array dimension
+    matrixVectorMultParallelMPI(&matrix, vector, N, size, rank);
 
 
     // TODO: Cleanup

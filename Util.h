@@ -1,4 +1,9 @@
-#include <stdio.h>
+#include <cstdio>
+#include <iostream>
 #include <malloc.h>
 #include <mpi.h>
-#include <math.h>
+#include <cmath>
+
+
+int readMatrixFromFile(int** arr, const char* input_filename, int *N);
+int readVectorFromFile(int** arr, const char* input_filename, int *N);
