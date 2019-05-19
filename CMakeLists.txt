@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.10)
+project(Distributed_Systems_and_Algorithms_Project_MPI_PageRank)
+
+set(CMAKE_CXX_STANDARD 17)
+
+add_executable(Distributed_Systems_and_Algorithms_Project_MPI_PageRank main.cpp)
