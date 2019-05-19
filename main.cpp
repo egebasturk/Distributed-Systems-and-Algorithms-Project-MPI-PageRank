@@ -87,4 +87,5 @@ int* matrixVectorMultParallelMPI(int* mat, int* vector, int dim, int size, int m
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Gather(computedVector, rowTileWidth, MPI_INT, outVecBuffer, rowTileWidth
             , MPI_INT, myRank,  MPI_COMM_WORLD);
+    printf("Rank: %d", myRank);
 }
