@@ -3,8 +3,8 @@
 
 namespace GMLParser
 {
-using namespace GraphStructure;
-GraphAdjList
-CreateAdjListFromFile(const char* filename);
+    using namespace GraphStructure;
+    GraphAdjList
+    CreateAdjListFromFile(const char* filename);
 
 }
