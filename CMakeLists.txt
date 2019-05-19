@@ -16,10 +16,25 @@ if(Boost_FOUND)
     else()
         message(FATAL_ERROR "Boost not found")
 endif()]]
-include_directories(/usr/include/mpi/)
+find_package(MPI REQUIRED)
+
 link_libraries(mpi)
 link_libraries(m)
-
 add_executable(Distributed_Systems_and_Algorithms_Project_MPI_PageRank main.cpp Util.cpp Util.h)
+
+
+# Link against MPI
+target_link_libraries(Distributed_Systems_and_Algorithms_Project_MPI_PageRank ${MPI_LIBRARIES})
+
+# Include MPI includes
+include_directories(${MPI_INCLUDE_PATH})
+if(MPI_COMPILE_FLAGS)
+    set_target_properties(Distributed_Systems_and_Algorithms_Project_MPI_PageRank PROPERTIES
+            COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+endif()
+if(MPI_LINK_FLAGS)
+    set_target_properties(Distributed_Systems_and_Algorithms_Project_MPI_PageRank PROPERTIES
+            LINK_FLAGS "${MPI_LINK_FLAGS}")
+endif()
 
 #target_link_libraries(Distributed_Systems_and_Algorithms_Project_MPI_PageRank ${Boost_LIBRARIES})
