@@ -50,9 +50,9 @@ bool converges(vector<double> before, vector<double> after,double threshhold){
 int
 main()
 {
-    auto x = CreateAdjListFromFile("test_gml.txt");
+    auto x = CreateAdjListFromFile("test_example.txt");
     double threshhold = (double)1/1000000;
-    int maxIter = 50;
+    int maxIter = 1;
     int i;
     size_t size = x.adj_list.size();
     vector<double> r_after(size); 
@@ -68,23 +68,24 @@ main()
         if (converges(r_after,r_before,threshhold)){
             i = maxIter;
         }
-
-        for (auto& vertex : r_before)
+        for (unsigned int i = 0; i < r_after.size(); i++)
         {
-            printf("%f, ", vertex);
+            printf("%d -> ", i );
+            printf("%f, ", r_after[i]);
+            printf("\n");
         }
-
-        printf("\n");
-
-        for (auto& vertex : r_after)
-        {
-            printf("%f, ", vertex);
-        }
-        printf("\n");
         r_before = r_after;
     }
-
-
+    for (auto& vertex : r_before)
+    {
+        printf("%f, ", vertex);
+    }
+    printf("\n");
+    for (auto& vertex : r_after)
+    {
+        printf("%f, ", vertex);
+    }
+    printf("\n");
     return 0;
 }
 
