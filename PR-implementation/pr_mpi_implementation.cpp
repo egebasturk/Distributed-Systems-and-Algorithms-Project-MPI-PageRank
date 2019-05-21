@@ -2,6 +2,7 @@
 #include "../GMLParser/gml_parser.h"
 #include <stdio.h>
 #include <vector>
+#include <numeric>
 #include <algorithm>
 #include <math.h>
 using namespace std;
@@ -59,21 +60,35 @@ int main(int argc, char** argv) {
     int world_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
-    if (world_rank == 0){
-        auto x = CreateAdjListFromFile("test_example.txt");
-        int i;
-        size_t size = x.adj_list.size();
-         
-        vector<double> r_before_init(size); 
+    int size, colSize;
+    GraphAdjList x;
 
-        for(i = 0; i < size; i++){
-            r_before_init[i] = (double)1/size;
+    /// Master reads and broadcasts size
+    if (world_rank == 0) {
+        x = CreateAdjListFromFile("test_example.txt");
+        size = x.adj_list.size();
+    }
+    /// All call broadcast
+    MPI_Bcast(&size,1, MPI_INT, 0 , MPI_COMM_WORLD);
+    // Everyone will create this vector, master will fill it
+    /*
+    vector<int> individual_sizes_of_adj_lists_in_graph(size);
+    /// Then master continues
+    if (world_rank == 0) {
+        for (int j = 0; j < size; ++j) {
+            individual_sizes_of_adj_lists_in_graph[j] = x.adj_list[j].size();
         }
-        
-        //pass the size
-        MPI_Bcast(&size,1, MPI_INT, 0 , MPI_COMM_WORLD);
+    }
+    /// All call Broadcast
+    MPI_Bcast(&individual_sizes_of_adj_lists_in_graph[0], size, MPI_INT, 0, MPI_COMM_WORLD);
+    /// Calculate for load balancing
+    int tmp_vector_sum = accumulate(individual_sizes_of_adj_lists_in_graph.begin(),
+            individual_sizes_of_adj_lists_in_graph.end(), 0);
+    */
 
-         int colSize;
+    if (world_rank == 0)
+    {
+        vector<double> r_before_init(size, (double) 1 / size);
         //broadcast the matrix
         for (int i = 0; i < x.adj_list.size(); ++i)
         {   
@@ -86,8 +101,8 @@ int main(int argc, char** argv) {
         //int offset;
         int msgSize = size/world_size;
         vector<double> r_after(msgSize); 
-        vector<double> r_before(size); 
-        r_before  = r_before_init;
+        vector<double> r_before(size, (double) 1 / size);
+        //r_before  = r_before_init;
         int iteration = 1;
         int stop = -27;
 
@@ -113,11 +128,6 @@ int main(int argc, char** argv) {
         }
 
     } else {
-        int size,colSize;
-
-        //recieve the initial size of the matrix
-        MPI_Bcast(&size, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
         vector<vector<int>>adjList(size);
      
         //receive the whole matrix
@@ -153,7 +163,7 @@ int main(int argc, char** argv) {
       
        
     }
- 
+
     // Finalize the MPI environment.
     MPI_Finalize();
 }
