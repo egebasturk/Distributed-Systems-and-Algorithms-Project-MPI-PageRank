@@ -21,6 +21,7 @@ find_package(MPI REQUIRED)
 link_libraries(mpi)
 link_libraries(m)
 add_executable(Distributed_Systems_and_Algorithms_Project_MPI_PageRank main.cpp Util.cpp Util.h)
+add_executable(gmltest GMLParser/gml_parser.cpp GMLParser/network_graph.cpp GMLParser/parse_test.cpp)
 
 
 # Link against MPI
