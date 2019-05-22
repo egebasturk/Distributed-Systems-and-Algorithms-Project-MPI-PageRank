@@ -10,26 +10,25 @@ using namespace GMLParser;
 
 
 //computes the sumation of 1 nodes rank 
-double sum_node_rank(vector<double> currentRanks, vector<vector<int>> adjlist, int node){
+double sum_node_rank(vector<double> currentRanks, vector<vector<int>> adjlist, int node,vector<int> outdegrees){
     double sum = 0;
-    int size = adjlist.size();
+    int size = adjlist[node].size();
 
     for (unsigned int i = 0; i < size; i++)
     {   
-        //if (node == i) continue;
-        if (find(adjlist[i].begin(), adjlist[i].end(), node) != adjlist[i].end()){
-            sum = sum + currentRanks[i]/ adjlist[i].size(); 
-        }
+        //update sum by run of the neighbour node divided by outdegree of that neighbour
+        sum = sum + currentRanks[adjlist[node][i]]/ (double) outdegrees[adjlist[node][i]]; 
+        
     }
-
+    
     return sum;
 }
 
 //computes 1 iteration of rank values computation
-vector<double>  performIteration( vector<double> r,vector<double> ranks, size_t size, vector<vector<int>> adjlist, int offset){
+vector<double>  performIteration( vector<double> r,vector<double> ranks, size_t size, vector<vector<int>> adjlist, int offset,vector<int> outdegrees){
     for (unsigned int i = 0; i < size; i++)
     {
-        r[i] = sum_node_rank(ranks,adjlist,offset + i);  
+        r[i] = sum_node_rank(ranks,adjlist,offset + i, outdegrees);  
     }
     return r;
 }
@@ -63,13 +62,22 @@ int main(int argc, char** argv) {
         auto x = CreateAdjListFromFile("test_example.txt");
         int i;
         size_t size = x.adj_list.size();
-         
+        size_t outdegrees_size = x.vertex_ids.size();
+
+        vector<int> outdegrees(outdegrees_size);
         vector<double> r_before_init(size); 
+
+        for (unsigned int i = 0; i < outdegrees_size; i++)
+        {
+        
+            outdegrees[x.vertex_ids[i].id_] = x.vertex_ids[i].out_degree_;
+        }
 
         for(i = 0; i < size; i++){
             r_before_init[i] = (double)1/size;
         }
         
+
         //pass the size
         MPI_Bcast(&size,1, MPI_INT, 0 , MPI_COMM_WORLD);
 
@@ -86,19 +94,30 @@ int main(int argc, char** argv) {
         //int offset;
         int msgSize = size/world_size;
         vector<double> r_after(msgSize); 
-        vector<double> r_before(size); 
+        vector<double> r_before(size);
+        //vector<int> scattered_outdegrees(msgSize);
         r_before  = r_before_init;
         int iteration = 1;
         int stop = -27;
 
+ 
+
+        MPI_Bcast(&outdegrees_size,1, MPI_INT, 0 , MPI_COMM_WORLD);
+        MPI_Bcast(&outdegrees.front(),outdegrees.size(), MPI_INT, 0 , MPI_COMM_WORLD);
+
+        //MPI_Scatter(&outdegrees.front(),msgSize,MPI_INT, &scattered_outdegrees.front(),msgSize,MPI_DOUBLE,0,MPI_COMM_WORLD);
+
         do{
+            
             MPI_Bcast(&iteration, 1, MPI_INT, 0 , MPI_COMM_WORLD);              //tell children if they should stop or not
             r_before_init = r_before;                                           //update rank vector
             MPI_Bcast(&r_before_init.front(), size, MPI_DOUBLE, 0 , MPI_COMM_WORLD);    //let all have the rank vector
             MPI_Scatter(&r_before_init.front(),msgSize,MPI_DOUBLE, &r_after.front(),msgSize,MPI_DOUBLE,0,MPI_COMM_WORLD); // only send the parts of the matrix that each processor needs to compute
-            r_after = performIteration(r_after,r_before_init,msgSize,x.adj_list,0);     //deals with one iteration in master (exactly same in children)
+            r_after = performIteration(r_after,r_before_init,msgSize,x.adj_list,0,outdegrees);     //deals with one iteration in master (exactly same in children)
             MPI_Gather(&r_after.front(), msgSize, MPI_DOUBLE, &r_before.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);  //gather results into r_before (master included) 
             iteration++;   
+           
+            
         }while (!converges(r_before, r_before_init,threshhold) && iteration < maxIter);
         
         //stop children as well
@@ -134,6 +153,17 @@ int main(int argc, char** argv) {
         vector<double> ranks(size);
         int iteration = 1;
         int offset = world_rank* msgSize;
+        // vector<int> outdegrees(msgSize);
+        // vector<int> scattered_outdegrees(msgSize);
+        
+        // MPI_Scatter(&outdegrees.front(),msgSize,MPI_INT, &scattered_outdegrees.front(),msgSize,MPI_DOUBLE,0,MPI_COMM_WORLD);
+
+        int outdegree_size;
+        MPI_Bcast(&outdegree_size,1, MPI_INT, 0 , MPI_COMM_WORLD);
+        vector<int> outdegrees(outdegree_size);
+        MPI_Bcast(&outdegrees.front(),outdegree_size, MPI_INT, 0 , MPI_COMM_WORLD);
+        
+
 
         do{
             MPI_Bcast(&iteration, 1, MPI_INT, 0 , MPI_COMM_WORLD);
@@ -143,7 +173,7 @@ int main(int argc, char** argv) {
                 
                 MPI_Bcast(&ranks.front(), size, MPI_DOUBLE, 0 , MPI_COMM_WORLD);                
 
-                r_after = performIteration(r_after,ranks,msgSize,adjList,offset);
+                r_after = performIteration(r_after,ranks,msgSize,adjList,offset,outdegrees);
 
                 MPI_Gather(&r_after.front(), msgSize, MPI_DOUBLE, &r_before.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);
         
