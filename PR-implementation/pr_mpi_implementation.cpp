@@ -92,6 +92,7 @@ int main(int argc, char** argv) {
         int stop = -27;
 
         do{
+        
             MPI_Bcast(&iteration, 1, MPI_INT, 0 , MPI_COMM_WORLD);              //tell children if they should stop or not
             r_before_init = r_before;                                           //update rank vector
             MPI_Bcast(&r_before_init.front(), size, MPI_DOUBLE, 0 , MPI_COMM_WORLD);    //let all have the rank vector
@@ -99,6 +100,7 @@ int main(int argc, char** argv) {
             r_after = performIteration(r_after,r_before_init,msgSize,x.adj_list,0);     //deals with one iteration in master (exactly same in children)
             MPI_Gather(&r_after.front(), msgSize, MPI_DOUBLE, &r_before.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);  //gather results into r_before (master included) 
             iteration++;   
+        
         }while (!converges(r_before, r_before_init,threshhold) && iteration < maxIter);
         
         //stop children as well
