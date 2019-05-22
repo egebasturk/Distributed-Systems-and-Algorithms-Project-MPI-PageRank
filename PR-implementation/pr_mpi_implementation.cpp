@@ -29,7 +29,8 @@ double sum_node_rank(vector<double> currentRanks, vector<vector<int>> adjlist, i
 vector<double>  performIteration( vector<double> r,vector<double> ranks, size_t size, vector<vector<int>> adjlist, int offset,vector<int> outdegrees){
     for (unsigned int i = 0; i < size; i++)
     {
-        r[i] = sum_node_rank(ranks,adjlist,offset + i, outdegrees);  
+        //r[i] = sum_node_rank(ranks,adjlist,offset + i, outdegrees);  
+        r[i] = sum_node_rank(ranks,adjlist,i, outdegrees);
 
     }
     // if (offset == 1){
@@ -120,30 +121,30 @@ int main(int argc, char** argv) {
         
         vector<double> r_before_init(size, (double) 1 / size);
 
-        // //broadcast the matrix
-        // for (int i = 1, j = 1, counter = 0; i < x.adj_list.size(); ++i)
-        // {   
-        //     if (counter >= partitions[j])
-        //     {
-        //         counter = 0;
-        //         j++;
-        //     }
-        //     //printf("%d,%d,%d\n",i,j,x.adj_list[i].size());
-        //     MPI_Send(&x.adj_list[i][0], x.adj_list[i].size(), MPI_INT, j, 0, MPI_COMM_WORLD);
-        //     counter++;
-           
-        // }
-
-        int colSize;
         //broadcast the matrix
-        for (int i = 0; i < x.adj_list.size(); ++i)
+        for (int i = 1, j = 1, counter = 0; i < x.adj_list.size(); ++i)
         {   
-            colSize = x.adj_list[i].size();
-
-            MPI_Bcast(&colSize, 1, MPI_INT, 0 , MPI_COMM_WORLD);
-            MPI_Bcast(&x.adj_list[i][0], x.adj_list[i].size(), MPI_INT, 0 , MPI_COMM_WORLD);  
-
+            if (counter >= partitions[j])
+            {
+                counter = 0;
+                j++;
+            }
+            //printf("%d,%d,%d\n",i,j,x.adj_list[i].size());
+            MPI_Send(&x.adj_list[i][0], x.adj_list[i].size(), MPI_INT, j, 0, MPI_COMM_WORLD);
+            counter++;
+           
         }
+
+        // int colSize;
+        // //broadcast the matrix
+        // for (int i = 0; i < x.adj_list.size(); ++i)
+        // {   
+        //     colSize = x.adj_list[i].size();
+
+        //     MPI_Bcast(&colSize, 1, MPI_INT, 0 , MPI_COMM_WORLD);
+        //     MPI_Bcast(&x.adj_list[i][0], x.adj_list[i].size(), MPI_INT, 0 , MPI_COMM_WORLD);  
+
+        // }
 
         // message size for the rank vector computation
         int msgSize = size/world_size;
@@ -187,22 +188,22 @@ int main(int argc, char** argv) {
 
     } else {
       
-        //vector<vector<int>>adjList(size);
-        
-        // //receive the whole matrix        
-        // for (int i = 0; i < partitions[world_rank]; i++){
-        //     adjList[i] = vector<int>(individual_sizes_of_adj_lists_in_graph[world_rank]);
-        //     MPI_Recv(&adjList[i][0], adjList[i].size(), MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        // }
-
         vector<vector<int>>adjList(size);
-        int colSize;
-        //receive the whole matrix
-        for (int i = 0; i < size; i++){
-            MPI_Bcast(&colSize, 1, MPI_INT, 0 , MPI_COMM_WORLD);
-            adjList[i] = vector<int>(colSize); 
-            MPI_Bcast(&adjList[i][0], colSize, MPI_INT, 0 , MPI_COMM_WORLD);
+        
+        //receive the whole matrix        
+        for (int i = 0; i < partitions[world_rank]; i++){
+            adjList[i] = vector<int>(individual_sizes_of_adj_lists_in_graph[world_rank]);
+            MPI_Recv(&adjList[i][0], adjList[i].size(), MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
+
+        // vector<vector<int>>adjList(size);
+        // int colSize;
+        // //receive the whole matrix
+        // for (int i = 0; i < size; i++){
+        //     MPI_Bcast(&colSize, 1, MPI_INT, 0 , MPI_COMM_WORLD);
+        //     adjList[i] = vector<int>(colSize); 
+        //     MPI_Bcast(&adjList[i][0], colSize, MPI_INT, 0 , MPI_COMM_WORLD);
+        // }
 
         //int offset;
         int msgSize = size/world_size;
