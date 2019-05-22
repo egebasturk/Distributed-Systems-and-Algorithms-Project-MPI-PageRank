@@ -6,27 +6,21 @@ GraphAdjList::add_vertex(const int vertex_id)
 {
     if (!is_in_lut(vertex_id))
     {
-        node_id_lut[vertex_id] = adj_list.size();
-        vertex_ids.push_back(vertex_id);
+        node_id_lut[vertex_id] = (int)adj_list.size();
+        vertex_ids.push_back(Vertex{ vertex_id, 0 });
         adj_list.push_back(std::vector<int>{});
-        return adj_list.size() - 1;
+        return (int)(adj_list.size() - 1);
     }
     return node_id_lut[vertex_id];
 }
 
 void
-GraphAdjList::add_edge_to_vertex_index(const int index, const int dst_id)
-{
-    int vertex_index = add_vertex(dst_id);
-    adj_list[index].push_back(vertex_index);
-}
-
-void
-GraphAdjList::add_edge(const int src_id, const int dst_id)
+GraphAdjList::add_incoming_edge(const int src_id, const int dst_id)
 {
     int dst_index = add_vertex(dst_id);
     int src_index = add_vertex(src_id);
-    adj_list[src_index].push_back(dst_index);
+    adj_list[dst_index].push_back(src_index);
+    vertex_ids[src_index].out_degree_++;
 }
 
 bool
@@ -52,11 +46,11 @@ GraphAdjList::print_graph_original_rep()
     printf("Graph original representation: \n");
     for (unsigned int i = 0; i < adj_list.size(); i++)
     {
-        int x = vertex_ids[i];
-        printf("%d -> ", x);
+        int x = vertex_ids[i].id_;
+        printf("%d out degree: %d <- ", vertex_ids[i].out_degree_, x);
         for (auto& vertex : adj_list[i])
         {
-            printf("%d, ", vertex_ids[vertex]);
+            printf("%d, ", vertex_ids[vertex].id_);
         }
         printf("\n");
     }
@@ -68,7 +62,7 @@ GraphAdjList::print_graph_internal_rep()
     printf("Graph internal representation: \n");
     for (unsigned int i = 0; i < adj_list.size(); i++)
     {
-        printf("%d -> ", i);
+        printf("%d out degree: %d <- ", vertex_ids[i].out_degree_, i);
         for (auto& vertex : adj_list[i])
         {
             printf("%d, ", vertex);

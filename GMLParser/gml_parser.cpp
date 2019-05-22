@@ -11,8 +11,6 @@ GraphAdjList
 CreateAdjListFromFile(const char* filename)
 {
     GraphAdjList graph;
-    int last_inserted_vertex_index = -1;
-    int last_inserted_vertex_id = -1;
     std::ifstream infile;
     infile.open(filename);
 
@@ -35,13 +33,7 @@ CreateAdjListFromFile(const char* filename)
             assert(0);
         }
 
-        if (last_inserted_vertex_id != src)
-        {
-            last_inserted_vertex_id = src;
-            last_inserted_vertex_index = graph.add_vertex(src);
-        }
-
-        graph.add_edge_to_vertex_index(last_inserted_vertex_index, dst);
+        graph.add_incoming_edge(src, dst);
     }
     return graph;
 }
