@@ -71,7 +71,6 @@ int main(int argc, char** argv) {
     /// All call broadcast
     MPI_Bcast(&size,1, MPI_INT, 0 , MPI_COMM_WORLD);
     // Everyone will create this vector, master will fill it
-    /*
     vector<int> individual_sizes_of_adj_lists_in_graph(size);
     /// Then master continues
     if (world_rank == 0) {
@@ -84,19 +83,28 @@ int main(int argc, char** argv) {
     /// Calculate for load balancing
     int tmp_vector_sum = accumulate(individual_sizes_of_adj_lists_in_graph.begin(),
             individual_sizes_of_adj_lists_in_graph.end(), 0);
-    */
+
+    vector<int> partitions(size, size / world_size);
+    int remainder = size % world_size;
+    partitions[0] += remainder;
+
 
     if (world_rank == 0)
     {
         vector<double> r_before_init(size, (double) 1 / size);
         //broadcast the matrix
-        for (int i = 0; i < x.adj_list.size(); ++i)
+        for (int i = 1, j = 1, counter = 0; i < x.adj_list.size(); ++i)
         {   
             colSize = x.adj_list[i].size();
-
-            MPI_Bcast(&colSize, 1, MPI_INT, 0 , MPI_COMM_WORLD);
-            MPI_Bcast(&x.adj_list[i][0], x.adj_list[i].size(), MPI_INT, 0 , MPI_COMM_WORLD);  
-
+            //MPI_Bcast(&colSize, 1, MPI_INT, 0 , MPI_COMM_WORLD);
+            //MPI_Bcast(&x.adj_list[i][0], x.adj_list[i].size(), MPI_INT, 0 , MPI_COMM_WORLD);
+            if (counter > partitions[j])
+            {
+                counter = 0;
+                j++;
+            }
+            MPI_Send(&x.adj_list[i][0], x.adj_list[i].size(), MPI_INT, j, 0, MPI_COMM_WORLD);
+            counter++;
         }
         //int offset;
         int msgSize = size/world_size;
@@ -115,7 +123,7 @@ int main(int argc, char** argv) {
             MPI_Gather(&r_after.front(), msgSize, MPI_DOUBLE, &r_before.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);  //gather results into r_before (master included) 
             iteration++;   
         }while (!converges(r_before, r_before_init,threshhold) && iteration < maxIter);
-        
+
         //stop children as well
         MPI_Bcast(&stop, 1, MPI_INT, 0 , MPI_COMM_WORLD);
 
@@ -129,12 +137,12 @@ int main(int argc, char** argv) {
 
     } else {
         vector<vector<int>>adjList(size);
-     
-        //receive the whole matrix
-        for (int i = 0; i < size; i++){
-            MPI_Bcast(&colSize, 1, MPI_INT, 0 , MPI_COMM_WORLD);
-            adjList[i] = vector<int>(colSize); 
-            MPI_Bcast(&adjList[i][0], colSize, MPI_INT, 0 , MPI_COMM_WORLD);
+
+        for (int i = 0; i < partitions[world_rank]; i++){
+            //MPI_Bcast(&colSize, 1, MPI_INT, 0 , MPI_COMM_WORLD);
+            adjList[i] = vector<int>(individual_sizes_of_adj_lists_in_graph[world_rank]);
+            //MPI_Bcast(&adjList[i][0], colSize, MPI_INT, 0 , MPI_COMM_WORLD);
+            MPI_Recv(&adjList[i][0], colSize, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
 
         //int offset;
