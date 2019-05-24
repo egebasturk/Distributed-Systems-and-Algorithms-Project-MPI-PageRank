@@ -4,12 +4,10 @@
 int
 main()
 {
-    auto x = GMLParser::CreateAdjListFromFile("test_gml.txt");
-    x.print_graph_original_rep();
+    GraphStructure::GraphAdjList graph = GMLParser::CreateAdjListFromFile("test_gml.txt");
+    graph.print_graph_original_rep();
     printf("\n##################\n\n");
-    x.print_graph_internal_rep();
-    int a = x.get_vertex_index(7);
-    printf("%d",a);
+    graph.print_graph_internal_rep();
     getchar();
     return 0;
 }
