@@ -30,34 +30,26 @@ double sum_node_rank(vector<double> currentRanks, vector<vector<int>> adjlist, i
 }
 
 //computes 1 iteration of rank values computation
-vector<double>  performIteration( vector<double> r_new,vector<double> r_old, vector<vector<int>> adjlist
-        , vector<int> partitions, vector<int> displacements, vector<int> individual_sizes_of_adj_lists_in_graph
-        , int my_rank, vector<int> outdegrees)
+/*vector<double>*/void  performIteration( vector<double> &r_new,vector<double> &r_old, vector<vector<int>> &adjlist
+        , vector<int> &partitions, vector<int> &displacements, vector<int> &individual_sizes_of_adj_lists_in_graph
+        , int my_rank, vector<int> &outdegrees)
 {
-    /*for (unsigned int i = 0; i < size; i++)
-    {
-        //r_new[i] = sum_node_rank(r_old,adjlist,offset + i, outdegrees);
-        r_new[i] = sum_node_rank(r_old,adjlist,i, outdegrees);
-
-    }
-    return r_new;
-     */
-    vector<double> tmp_vector (r_new.size());
+    //vector<double> tmp_vector (r_new.size());
     for (int i = displacements[my_rank]; i < displacements[my_rank] + partitions[my_rank]; ++i) {
         double sum = 0;
         for (int j = 0; j < individual_sizes_of_adj_lists_in_graph[i]; ++j) {
             if (outdegrees[adjlist[i][j]] != 0)
                 sum += r_old[adjlist[i][j]] / (double) outdegrees[adjlist[i][j]];
         }
-        tmp_vector[i] = sum * BETA;// + (1.0f - BETA) / (double) r_new.size();
+        r_new[i] = sum * BETA;// + (1.0f - BETA) / (double) r_new.size();
        
     }
-    return tmp_vector;
+    //return tmp_vector;
 }
 
 
 //checks if computation has converged or not
-bool converges(vector<double> before, vector<double> after,double threshhold){
+bool converges(vector<double> &before, vector<double> &after, double threshhold){
     /*for (unsigned int i = 0; i < before.size(); i++){
         if ( fabs(before[i] - after[i]) > threshhold ) return false;
     }*/
@@ -88,8 +80,8 @@ int main(int argc, char** argv) {
     
     /// Master reads and broadcasts size
     if (world_rank == 0) {
-        x = CreateAdjListFromFile("test_example.txt");
-        //x = CreateAdjListFromFile("web-Google.txt");
+        //x = CreateAdjListFromFile("test_example.txt");
+        x = CreateAdjListFromFile("web-Google.txt");
         size = x.adj_list.size();
         outdegrees_size = x.vertex_ids.size();
     }
@@ -135,7 +127,8 @@ int main(int argc, char** argv) {
     for (int k = 1; k < size; ++k) {
         displacements[k] = displacements[k - 1] + partitions[k - 1];
     }
-    
+    vector<double> r_new(size);
+    vector<double> r_old(size, (double) 1 / size);
     if (world_rank == 0)
     {
         /// send the partial matrix
@@ -153,11 +146,6 @@ int main(int argc, char** argv) {
             counter++;
            
         }
-        // message size for the rank vector computation
-        int msgSize = size/world_size;
-        vector<double> r_new(size);
-        vector<double> r_old(size, (double) 1 / size);
-
         int iteration = 1;
         int stop = FLAG_ITERATION_STOP;
 
@@ -165,12 +153,11 @@ int main(int argc, char** argv) {
             MPI_Bcast(&iteration, 1, MPI_INT, 0 , MPI_COMM_WORLD);              //tell children if they should stop or not
             MPI_Bcast(&r_old.front(), size, MPI_DOUBLE, 0 , MPI_COMM_WORLD);    //let all have the rank vector
             
-            r_new = performIteration(r_new, r_old, x.adj_list, partitions
+            performIteration(r_new, r_old, x.adj_list, partitions
                     , displacements, individual_sizes_of_adj_lists_in_graph
                     , world_rank, outdegrees);     //deals with one iteration in master (exactly same in children)
-            
-            //MPI_Gather(&r_new.front(), msgSize, MPI_DOUBLE, &r_old.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);  //gather results into r_old (master included)
 
+            /// Gather gathers onto the r_old so it will be updated automatically
             MPI_Gatherv(&r_new.front(), partitions[0], MPI_DOUBLE, &r_old.front(), &partitions.front()
                     , &displacements.front(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
             double S = accumulate(r_old.begin(), r_old.end(), 0.0);
@@ -208,12 +195,7 @@ int main(int argc, char** argv) {
             MPI_Recv(&adjList[i][0], adjList[i].size(), MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
 
-        //int offset;
-        int msgSize = size/world_size;
-        vector<double> r_old(size);
-        vector<double> r_new(size);
         int iteration = 1;
-        int offset = world_rank* msgSize;
         
         do{
             MPI_Bcast(&iteration, 1, MPI_INT, 0 , MPI_COMM_WORLD);
@@ -222,23 +204,32 @@ int main(int argc, char** argv) {
             {
                 MPI_Bcast(&r_old.front(), size, MPI_DOUBLE, 0 , MPI_COMM_WORLD);
                  
-                r_new = performIteration(r_new, r_old, adjList, partitions
+                performIteration(r_new, r_old, adjList, partitions
                         , displacements, individual_sizes_of_adj_lists_in_graph
                         , world_rank, outdegrees);
 
-                 
-                //MPI_Gather(&r_new[displacements[world_rank]], partitions[world_rank]
-                        //, MPI_DOUBLE, &r_old.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);
                 MPI_Gatherv(&r_new[displacements[world_rank]], partitions[world_rank], MPI_DOUBLE
                         , NULL, &partitions.front(), &displacements.front(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
         
             }
           
         }  while (iteration > 0);
-      
-       
+        for (int j = 0; j < size; ++j) {
+            adjList[j].clear();
+        }
+        adjList.clear();
     }
- 
+
+    if (world_rank == 0)
+    {
+        x.freeGrap();
+    }
+    partitions.clear();
+    displacements.clear();
+    individual_sizes_of_adj_lists_in_graph.clear();
+    r_new.clear();
+    r_old.clear();
+    outdegrees.clear();
     // Finalize the MPI environment.
     MPI_Finalize();
 }

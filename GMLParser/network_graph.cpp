@@ -70,4 +70,12 @@ GraphAdjList::print_graph_internal_rep()
         printf("\n");
     }
 }
+
+    void GraphAdjList::freeGrap() {
+        vertex_ids.clear();
+        for (int i = 0; i < adj_list.size(); ++i) {
+            adj_list[i].clear();
+        }
+        adj_list.clear();
+    }
 }
