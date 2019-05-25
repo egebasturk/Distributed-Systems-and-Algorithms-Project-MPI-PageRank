@@ -27,5 +27,6 @@ struct GraphAdjList
     int get_vertex_index(const int vertex_id);
     void print_graph_original_rep();
     void print_graph_internal_rep();
+    void freeGrap();
 };
 }
