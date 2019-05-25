@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
         }
         // message size for the rank vector computation
         int msgSize = size/world_size;
-        vector<double> r_new(msgSize);
+        vector<double> r_new(size);
         vector<double> r_old(size, (double) 1 / size);;
 
         int iteration = 1;
@@ -141,11 +141,11 @@ int main(int argc, char** argv) {
             MPI_Bcast(&iteration, 1, MPI_INT, 0 , MPI_COMM_WORLD);              //tell children if they should stop or not
             MPI_Bcast(&r_old.front(), size, MPI_DOUBLE, 0 , MPI_COMM_WORLD);    //let all have the rank vector
             
-            r_new = performIteration(r_new, r_old, x.adj_list, partitions, displacements, individual_sizes_of_adj_lists_in_graph, world_rank);     //deals with one iteration in master (exactly same in children)
+            //r_new = performIteration(r_new, r_old, x.adj_list, partitions, displacements, individual_sizes_of_adj_lists_in_graph, world_rank);     //deals with one iteration in master (exactly same in children)
             
             //MPI_Gather(&r_new.front(), msgSize, MPI_DOUBLE, &r_old.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);  //gather results into r_old (master included)
-            int* recv_buffer = (int*)malloc(partitions[world_rank] * sizeof(int));
-            MPI_Gatherv(&r_new.front(), partitions[0], MPI_DOUBLE, &recv_buffer, &partitions.front()
+
+            MPI_Gatherv(&r_new.front(), partitions[0], MPI_DOUBLE, &r_old[0], &partitions.front()
                     , &displacements.front(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
             
             iteration++;   
@@ -188,7 +188,7 @@ int main(int argc, char** argv) {
             {
                 MPI_Bcast(&r_old.front(), size, MPI_DOUBLE, 0 , MPI_COMM_WORLD);
 
-                r_new = performIteration(r_new, r_old, adjList, partitions, displacements, individual_sizes_of_adj_lists_in_graph, world_rank);
+                //r_new = performIteration(r_new, r_old, adjList, partitions, displacements, individual_sizes_of_adj_lists_in_graph, world_rank);
      
                 //MPI_Gather(&r_new[displacements[world_rank]], partitions[world_rank]
                         //, MPI_DOUBLE, &r_old.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);
