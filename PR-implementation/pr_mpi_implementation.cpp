@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <math.h>
 #include <numeric>
+#include <limits>
 #define DEBUG_PRINT 0
 #define BETA 0.8f
 using namespace std;
@@ -45,7 +46,7 @@ vector<double>  performIteration( vector<double> r_new,vector<double> r_old, vec
         for (int j = 0; j < individual_sizes_of_adj_lists_in_graph[i]; ++j) {
             sum += r_old[adjlist[i][j]] / (double) outdegrees[adjlist[i][j]];
         }
-        tmp_vector[i] = sum;
+        tmp_vector[i] = sum * BETA + (1.0f - BETA) / (double) r_new.size();
     }
     return tmp_vector;
 }
@@ -115,7 +116,7 @@ int main(int argc, char** argv) {
             individual_sizes_of_adj_lists_in_graph.end(), 0);
 
     vector<int> partitions(size, size / world_size);
-    vector<int> displacements(size, size);
+    vector<int> displacements(size);
     int remainder = size % world_size;
     partitions[0] += remainder;
 
@@ -124,9 +125,8 @@ int main(int argc, char** argv) {
         displacements[k] = displacements[k - 1] + partitions[k - 1];
     }
     
-    if (world_rank == 0){
-        int i;
-
+    if (world_rank == 0)
+    {
         /// send the partial matrix
         for (int i = displacements[1], j = 1, counter = 0; i < x.adj_list.size(); ++i)
         {   
@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
         // message size for the rank vector computation
         int msgSize = size/world_size;
         vector<double> r_new(size);
-        vector<double> r_old(size, (double) 1 / size);;
+        vector<double> r_old(size, (double) 1 / size);
 
         int iteration = 1;
         int stop = -27;
@@ -161,7 +161,7 @@ int main(int argc, char** argv) {
             
             //MPI_Gather(&r_new.front(), msgSize, MPI_DOUBLE, &r_old.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);  //gather results into r_old (master included)
 
-            MPI_Gatherv(&r_new.front(), partitions[0], MPI_DOUBLE, &r_old[0], &partitions.front()
+            MPI_Gatherv(&r_new.front(), partitions[0], MPI_DOUBLE, &r_old.front(), &partitions.front()
                     , &displacements.front(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
             
             iteration++;   
@@ -173,11 +173,13 @@ int main(int argc, char** argv) {
         MPI_Bcast(&stop, 1, MPI_INT, 0 , MPI_COMM_WORLD);
         
         //output the results
-        for (unsigned int i = 0; i < r_old.size(); i++)
+        cout.precision(std::numeric_limits<double>::max_digits10);
+        for (int i = 0; i < r_old.size(); i++)
         {
-                printf("%d -> ", i  );
+                /*printf("%d -> ", i  );
                 printf("%f, ", r_old[i]);
-                printf("\n");
+                printf("\n");*/
+                cout << i << "->" << r_old[i] << endl;
         }
 
     } else {
@@ -204,13 +206,14 @@ int main(int argc, char** argv) {
             {
                 MPI_Bcast(&r_old.front(), size, MPI_DOUBLE, 0 , MPI_COMM_WORLD);
 
-                r_new = performIteration(r_new, r_old, adjList, partitions, displacements
-                        , individual_sizes_of_adj_lists_in_graph, world_rank, outdegrees);
+                r_new = performIteration(r_new, r_old, adjList, partitions
+                        , displacements, individual_sizes_of_adj_lists_in_graph
+                        , world_rank, outdegrees);
      
                 //MPI_Gather(&r_new[displacements[world_rank]], partitions[world_rank]
                         //, MPI_DOUBLE, &r_old.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);
                 MPI_Gatherv(&r_new[displacements[world_rank]], partitions[world_rank], MPI_DOUBLE
-                        , NULL, 0, &displacements.front(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+                        , NULL, &partitions.front(), &displacements.front(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
         
             }
           
