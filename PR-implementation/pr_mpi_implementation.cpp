@@ -7,7 +7,7 @@
 #include <numeric>
 #include <limits>
 #define DEBUG_PRINT 0
-#define BETA 0.8f
+#define BETA 1.0f
 #define FLAG_ITERATION_STOP -27
 #define MAX_ITERATIONS 50
 using namespace std;
@@ -42,14 +42,15 @@ vector<double>  performIteration( vector<double> r_new,vector<double> r_old, vec
     }
     return r_new;
      */
-    vector<double > tmp_vector (r_new.size());
+    vector<double> tmp_vector (r_new.size());
     for (int i = displacements[my_rank]; i < displacements[my_rank] + partitions[my_rank]; ++i) {
-        int sum = 0;
+        double sum = 0;
         for (int j = 0; j < individual_sizes_of_adj_lists_in_graph[i]; ++j) {
             if (outdegrees[adjlist[i][j]] != 0)
                 sum += r_old[adjlist[i][j]] / (double) outdegrees[adjlist[i][j]];
         }
         tmp_vector[i] = sum * BETA;// + (1.0f - BETA) / (double) r_new.size();
+       
     }
     return tmp_vector;
 }
@@ -88,7 +89,7 @@ int main(int argc, char** argv) {
     /// Master reads and broadcasts size
     if (world_rank == 0) {
         x = CreateAdjListFromFile("test_example.txt");
-        x = CreateAdjListFromFile("web-Google.txt");
+        //x = CreateAdjListFromFile("web-Google.txt");
         size = x.adj_list.size();
         outdegrees_size = x.vertex_ids.size();
     }
@@ -173,6 +174,9 @@ int main(int argc, char** argv) {
             MPI_Gatherv(&r_new.front(), partitions[0], MPI_DOUBLE, &r_old.front(), &partitions.front()
                     , &displacements.front(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
             double S = accumulate(r_old.begin(), r_old.end(), 0.0);
+           
+            // NOTE: Since all processes have the smae I think each processor should add 1-S / size in the noraml computation;
+            // the master should not do all this as this is parallellizable
             for (int i = 0; i < size; ++i) {
                 r_old[i] += (double) (1 - S) / size;
             }
@@ -217,11 +221,12 @@ int main(int argc, char** argv) {
             if (iteration > 0)
             {
                 MPI_Bcast(&r_old.front(), size, MPI_DOUBLE, 0 , MPI_COMM_WORLD);
-
+                 
                 r_new = performIteration(r_new, r_old, adjList, partitions
                         , displacements, individual_sizes_of_adj_lists_in_graph
                         , world_rank, outdegrees);
-     
+
+                 
                 //MPI_Gather(&r_new[displacements[world_rank]], partitions[world_rank]
                         //, MPI_DOUBLE, &r_old.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);
                 MPI_Gatherv(&r_new[displacements[world_rank]], partitions[world_rank], MPI_DOUBLE
