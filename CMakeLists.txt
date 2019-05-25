@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(Distributed_Systems_and_Algorithms_Project_MPI_PageRank)
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -O0")
 
 
 #[[find_package( Boost REQUIRED COMPONENTS graph)
