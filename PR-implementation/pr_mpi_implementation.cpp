@@ -46,7 +46,8 @@ vector<double>  performIteration( vector<double> r_new,vector<double> r_old, vec
     for (int i = displacements[my_rank]; i < displacements[my_rank] + partitions[my_rank]; ++i) {
         int sum = 0;
         for (int j = 0; j < individual_sizes_of_adj_lists_in_graph[i]; ++j) {
-            sum += r_old[adjlist[i][j]] / (double) outdegrees[adjlist[i][j]];
+            if (outdegrees[adjlist[i][j]] != 0)
+                sum += r_old[adjlist[i][j]] / (double) outdegrees[adjlist[i][j]];
         }
         tmp_vector[i] = sum * BETA;// + (1.0f - BETA) / (double) r_new.size();
     }
@@ -56,9 +57,13 @@ vector<double>  performIteration( vector<double> r_new,vector<double> r_old, vec
 
 //checks if computation has converged or not
 bool converges(vector<double> before, vector<double> after,double threshhold){
-    for (unsigned int i = 0; i < before.size(); i++){
+    /*for (unsigned int i = 0; i < before.size(); i++){
         if ( fabs(before[i] - after[i]) > threshhold ) return false;
-    }
+    }*/
+    double tmpSum1 = accumulate(before.begin(), before.end(), 0.0);
+    double tmpSum2 = accumulate(after.begin(), after.end(), 0.0);
+    if (fabs(tmpSum1 - tmpSum2) > threshhold)
+        return false;
     return true;
 }
 
@@ -67,7 +72,7 @@ int main(int argc, char** argv) {
   // Initialize the MPI environment
     MPI_Init(NULL, NULL);
 
-    double threshhold = (double)1/1000000;
+    double threshhold = (double)1/100000;
 
     // Get the number of processes
     int world_size;
@@ -97,9 +102,12 @@ int main(int argc, char** argv) {
     if (world_rank == 0){
         for (unsigned int i = 0; i < size; i++)
         {
+            //outdegrees[x.vertex_ids[i].id_] = x.vertex_ids[i].out_degree_;
             outdegrees[i] = x.vertex_ids[i].out_degree_;
-            outdegrees[i] = i % 7;
+            //cout << outdegrees[i] << "\t";
+            //outdegrees[i] = i % 7;
         }
+        //cout << endl;
     }
     MPI_Bcast(&outdegrees.front(),outdegrees_size, MPI_INT, 0 , MPI_COMM_WORLD);
 
@@ -164,14 +172,14 @@ int main(int argc, char** argv) {
 
             MPI_Gatherv(&r_new.front(), partitions[0], MPI_DOUBLE, &r_old.front(), &partitions.front()
                     , &displacements.front(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
-            double S = accumulate(r_old.begin(), r_old.end(), 0);
+            double S = accumulate(r_old.begin(), r_old.end(), 0.0);
             for (int i = 0; i < size; ++i) {
                 r_old[i] += (double) (1 - S) / size;
             }
             iteration++;
        
             
-        }while (!converges(r_old, r_old,threshhold) && iteration < MAX_ITERATIONS);
+        }while (!converges(r_old, r_new,threshhold) && iteration < MAX_ITERATIONS);
         
         //stop children as well
         MPI_Bcast(&stop, 1, MPI_INT, 0 , MPI_COMM_WORLD);
