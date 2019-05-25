@@ -8,6 +8,8 @@
 #include <limits>
 #define DEBUG_PRINT 0
 #define BETA 0.8f
+#define FLAG_ITERATION_STOP -27
+#define MAX_ITERATIONS 50
 using namespace std;
 using namespace GMLParser;
 
@@ -66,7 +68,6 @@ int main(int argc, char** argv) {
     MPI_Init(NULL, NULL);
 
     double threshhold = (double)1/1000000;
-    int maxIter = 50;
 
     // Get the number of processes
     int world_size;
@@ -97,6 +98,7 @@ int main(int argc, char** argv) {
         for (unsigned int i = 0; i < size; i++)
         {
             outdegrees[i] = x.vertex_ids[i].out_degree_;
+            outdegrees[i] = i % 7;
         }
     }
     MPI_Bcast(&outdegrees.front(),outdegrees_size, MPI_INT, 0 , MPI_COMM_WORLD);
@@ -148,10 +150,9 @@ int main(int argc, char** argv) {
         vector<double> r_old(size, (double) 1 / size);
 
         int iteration = 1;
-        int stop = -27;
+        int stop = FLAG_ITERATION_STOP;
 
         do{
-            
             MPI_Bcast(&iteration, 1, MPI_INT, 0 , MPI_COMM_WORLD);              //tell children if they should stop or not
             MPI_Bcast(&r_old.front(), size, MPI_DOUBLE, 0 , MPI_COMM_WORLD);    //let all have the rank vector
             
@@ -165,12 +166,12 @@ int main(int argc, char** argv) {
                     , &displacements.front(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
             double S = accumulate(r_old.begin(), r_old.end(), 0);
             for (int i = 0; i < size; ++i) {
-                r_old[i] += (1 - S) / (double) size;
+                r_old[i] += (double) (1 - S) / size;
             }
             iteration++;
        
             
-        }while (!converges(r_old, r_old,threshhold) && iteration < maxIter);
+        }while (!converges(r_old, r_old,threshhold) && iteration < MAX_ITERATIONS);
         
         //stop children as well
         MPI_Bcast(&stop, 1, MPI_INT, 0 , MPI_COMM_WORLD);
