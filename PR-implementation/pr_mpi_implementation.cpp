@@ -7,9 +7,9 @@
 #include <numeric>
 #include <limits>
 #define DEBUG_PRINT 0
-#define BETA 1.0f
+#define BETA 0.8f
 #define FLAG_ITERATION_STOP -27
-#define MAX_ITERATIONS 50
+#define MAX_ITERATIONS 50   
 using namespace std;
 using namespace GMLParser;
 
@@ -34,14 +34,6 @@ vector<double>  performIteration( vector<double> r_new,vector<double> r_old, vec
         , vector<int> partitions, vector<int> displacements, vector<int> individual_sizes_of_adj_lists_in_graph
         , int my_rank, vector<int> outdegrees)
 {
-    /*for (unsigned int i = 0; i < size; i++)
-    {
-        //r_new[i] = sum_node_rank(r_old,adjlist,offset + i, outdegrees);
-        r_new[i] = sum_node_rank(r_old,adjlist,i, outdegrees);
-
-    }
-    return r_new;
-     */
     vector<double> tmp_vector (r_new.size());
     for (int i = displacements[my_rank]; i < displacements[my_rank] + partitions[my_rank]; ++i) {
         double sum = 0;
@@ -58,9 +50,6 @@ vector<double>  performIteration( vector<double> r_new,vector<double> r_old, vec
 
 //checks if computation has converged or not
 bool converges(vector<double> before, vector<double> after,double threshhold){
-    /*for (unsigned int i = 0; i < before.size(); i++){
-        if ( fabs(before[i] - after[i]) > threshhold ) return false;
-    }*/
     double tmpSum1 = accumulate(before.begin(), before.end(), 0.0);
     double tmpSum2 = accumulate(after.begin(), after.end(), 0.0);
     if (fabs(tmpSum1 - tmpSum2) > threshhold)
@@ -68,6 +57,14 @@ bool converges(vector<double> before, vector<double> after,double threshhold){
     return true;
 }
 
+
+double accumualtePartialSum( vector<int> partitions, vector<int> displacements, int my_rank,vector<double> r_vector){
+    double sum = 0;
+    for (int i = displacements[my_rank]; i < displacements[my_rank] + partitions[my_rank]; ++i) {
+        sum += r_vector[i];
+    }
+    return sum;
+}
 
 int main(int argc, char** argv) {
   // Initialize the MPI environment
@@ -84,12 +81,13 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
     int size, colSize,outdegrees_size;
+    double global_leakage_sum, local_leakage_sum;
     GraphAdjList x;
     
     /// Master reads and broadcasts size
     if (world_rank == 0) {
-        x = CreateAdjListFromFile("test_example.txt");
-        //x = CreateAdjListFromFile("web-Google.txt");
+        //x = CreateAdjListFromFile("test_example.txt");
+        x = CreateAdjListFromFile("../GMLParser/web-Google.txt");
         size = x.adj_list.size();
         outdegrees_size = x.vertex_ids.size();
     }
@@ -105,8 +103,6 @@ int main(int argc, char** argv) {
         {
             //outdegrees[x.vertex_ids[i].id_] = x.vertex_ids[i].out_degree_;
             outdegrees[i] = x.vertex_ids[i].out_degree_;
-            //cout << outdegrees[i] << "\t";
-            //outdegrees[i] = i % 7;
         }
         //cout << endl;
     }
@@ -169,17 +165,23 @@ int main(int argc, char** argv) {
                     , displacements, individual_sizes_of_adj_lists_in_graph
                     , world_rank, outdegrees);     //deals with one iteration in master (exactly same in children)
             
-            //MPI_Gather(&r_new.front(), msgSize, MPI_DOUBLE, &r_old.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);  //gather results into r_old (master included)
+            local_leakage_sum =  accumualtePartialSum( partitions, displacements,world_rank ,r_new);
+            MPI_Allreduce(&local_leakage_sum, &global_leakage_sum, 1, MPI_DOUBLE, MPI_SUM,MPI_COMM_WORLD);
+
+            for (int i = 0; i < r_new.size(); ++i) {
+                    r_new[i] += (double) (1 - global_leakage_sum) / size;
+            }
 
             MPI_Gatherv(&r_new.front(), partitions[0], MPI_DOUBLE, &r_old.front(), &partitions.front()
                     , &displacements.front(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
-            double S = accumulate(r_old.begin(), r_old.end(), 0.0);
+            
+            /*double S = accumulate(r_old.begin(), r_old.end(), 0.0);
            
             // NOTE: Since all processes have the smae I think each processor should add 1-S / size in the noraml computation;
             // the master should not do all this as this is parallellizable
             for (int i = 0; i < size; ++i) {
                 r_old[i] += (double) (1 - S) / size;
-            }
+            }*/
             iteration++;
        
             
@@ -226,7 +228,13 @@ int main(int argc, char** argv) {
                         , displacements, individual_sizes_of_adj_lists_in_graph
                         , world_rank, outdegrees);
 
-                 
+                local_leakage_sum =  accumualtePartialSum( partitions, displacements,world_rank ,r_new);
+                MPI_Allreduce(&local_leakage_sum, &global_leakage_sum, 1, MPI_DOUBLE, MPI_SUM,MPI_COMM_WORLD);
+
+                for (int i = 0; i < r_new.size(); ++i) {
+                    r_new[i] += (double) (1 - global_leakage_sum) / size;
+                }
+
                 //MPI_Gather(&r_new[displacements[world_rank]], partitions[world_rank]
                         //, MPI_DOUBLE, &r_old.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);
                 MPI_Gatherv(&r_new[displacements[world_rank]], partitions[world_rank], MPI_DOUBLE
