@@ -46,7 +46,7 @@ vector<double>  performIteration( vector<double> r_new,vector<double> r_old, vec
         for (int j = 0; j < individual_sizes_of_adj_lists_in_graph[i]; ++j) {
             sum += r_old[adjlist[i][j]] / (double) outdegrees[adjlist[i][j]];
         }
-        tmp_vector[i] = sum * BETA + (1.0f - BETA) / (double) r_new.size();
+        tmp_vector[i] = sum * BETA;// + (1.0f - BETA) / (double) r_new.size();
     }
     return tmp_vector;
 }
@@ -163,8 +163,11 @@ int main(int argc, char** argv) {
 
             MPI_Gatherv(&r_new.front(), partitions[0], MPI_DOUBLE, &r_old.front(), &partitions.front()
                     , &displacements.front(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
-            
-            iteration++;   
+            double S = accumulate(r_old.begin(), r_old.end(), 0);
+            for (int i = 0; i < size; ++i) {
+                r_old[i] += (1 - S) / (double) size;
+            }
+            iteration++;
        
             
         }while (!converges(r_old, r_old,threshhold) && iteration < maxIter);
