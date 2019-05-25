@@ -13,7 +13,7 @@ using namespace GMLParser;
 
 
 //computes the sumation of 1 nodes rank 
-double sum_node_rank(vector<double> currentRanks, vector<vector<int>> adjlist, int node,vector<int> outdegrees){
+double sum_node_rank(vector<double> currentRanks, vector<vector<int>> adjlist, int node, vector<int> outdegrees){
     double sum = 0;
     int size = adjlist[node].size();
 
@@ -29,7 +29,7 @@ double sum_node_rank(vector<double> currentRanks, vector<vector<int>> adjlist, i
 //computes 1 iteration of rank values computation
 vector<double>  performIteration( vector<double> r_new,vector<double> r_old, vector<vector<int>> adjlist
         , vector<int> partitions, vector<int> displacements, vector<int> individual_sizes_of_adj_lists_in_graph
-        , int my_rank)
+        , int my_rank, vector<int> outdegrees)
 {
     /*for (unsigned int i = 0; i < size; i++)
     {
@@ -39,12 +39,15 @@ vector<double>  performIteration( vector<double> r_new,vector<double> r_old, vec
     }
     return r_new;
      */
+    vector<double > tmp_vector (r_new.size());
     for (int i = displacements[my_rank]; i < displacements[my_rank] + partitions[my_rank]; ++i) {
         int sum = 0;
         for (int j = 0; j < individual_sizes_of_adj_lists_in_graph[i]; ++j) {
-            sum += r_old[adjlist[i][j]];
+            sum += r_old[adjlist[i][j]] / (double) outdegrees[adjlist[i][j]];
         }
+        tmp_vector[i] = sum;
     }
+    return tmp_vector;
 }
 
 
@@ -80,11 +83,22 @@ int main(int argc, char** argv) {
         x = CreateAdjListFromFile("test_example.txt");
         x = CreateAdjListFromFile("web-Google.txt");
         size = x.adj_list.size();
+        outdegrees_size = x.vertex_ids.size();
     }
 
     /// All call broadcast
     MPI_Bcast(&size,1, MPI_INT, 0 , MPI_COMM_WORLD);
     MPI_Bcast(&outdegrees_size,1, MPI_INT, 0 , MPI_COMM_WORLD);
+
+    vector<int> outdegrees(size);
+    /// convert the outdegree information into contigous mem/array and broadcast it
+    if (world_rank == 0){
+        for (unsigned int i = 0; i < size; i++)
+        {
+            outdegrees[i] = x.vertex_ids[i].out_degree_;
+        }
+    }
+    MPI_Bcast(&outdegrees.front(),outdegrees_size, MPI_INT, 0 , MPI_COMM_WORLD);
 
     // Everyone will create this vector, master will fill it
     vector<int> individual_sizes_of_adj_lists_in_graph(size);
@@ -141,7 +155,9 @@ int main(int argc, char** argv) {
             MPI_Bcast(&iteration, 1, MPI_INT, 0 , MPI_COMM_WORLD);              //tell children if they should stop or not
             MPI_Bcast(&r_old.front(), size, MPI_DOUBLE, 0 , MPI_COMM_WORLD);    //let all have the rank vector
             
-            //r_new = performIteration(r_new, r_old, x.adj_list, partitions, displacements, individual_sizes_of_adj_lists_in_graph, world_rank);     //deals with one iteration in master (exactly same in children)
+            r_new = performIteration(r_new, r_old, x.adj_list, partitions
+                    , displacements, individual_sizes_of_adj_lists_in_graph
+                    , world_rank, outdegrees);     //deals with one iteration in master (exactly same in children)
             
             //MPI_Gather(&r_new.front(), msgSize, MPI_DOUBLE, &r_old.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);  //gather results into r_old (master included)
 
@@ -188,7 +204,8 @@ int main(int argc, char** argv) {
             {
                 MPI_Bcast(&r_old.front(), size, MPI_DOUBLE, 0 , MPI_COMM_WORLD);
 
-                //r_new = performIteration(r_new, r_old, adjList, partitions, displacements, individual_sizes_of_adj_lists_in_graph, world_rank);
+                r_new = performIteration(r_new, r_old, adjList, partitions, displacements
+                        , individual_sizes_of_adj_lists_in_graph, world_rank, outdegrees);
      
                 //MPI_Gather(&r_new[displacements[world_rank]], partitions[world_rank]
                         //, MPI_DOUBLE, &r_old.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);
