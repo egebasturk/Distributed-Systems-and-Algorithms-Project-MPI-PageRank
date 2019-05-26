@@ -232,16 +232,7 @@ implementation()
         }  while (iteration > 0);
     }
 
-    if (world_rank == 0)
-    {
-        x.freeGrap();
-    }
-    partitions.clear();
-    displacements.clear();
-    individual_sizes_of_adj_lists_in_graph.clear();
-    r_new.clear();
-    r_old.clear();
-    outdegrees.clear();
+   
 
     parallel_mpi_time_counter += MPI_Wtime();
     if (world_rank == 0){

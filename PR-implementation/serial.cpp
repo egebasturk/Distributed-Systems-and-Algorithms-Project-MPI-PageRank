@@ -40,7 +40,7 @@ void  performIteration( vector<double> &r_new,vector<double> &r_old, vector<vect
             if (outdegrees[adjlist[i][j]] != 0)
                 sum += r_old[adjlist[i][j]] / (double) outdegrees[adjlist[i][j]];
         }
-        r_new[i] = sum;// * BETA;
+        r_new[i] = sum * BETA;
        
     }
 }
