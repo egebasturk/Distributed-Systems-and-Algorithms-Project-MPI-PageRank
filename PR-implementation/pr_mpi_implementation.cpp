@@ -105,15 +105,14 @@ implementation()
 
     /// Master reads and broadcasts size
     if (world_rank == 0) {
-        //x = CreateAdjListFromFile("test_example.txt");
         x = CreateAdjListFromFile("../GMLParser/web-Google.txt");
         size = x.adj_list.size();
         outdegrees_size = x.vertex_ids.size();
     }
+    serial_mpi_time_counter += MPI_Wtime();
 
-    if (world_size == 0){
-        int size,outdegrees_size,i;
-     
+    if (world_size == 1){
+        int i;
         vector<int> outdegrees(size);
         for (unsigned int i = 0; i < size; i++)
         {
@@ -138,16 +137,14 @@ implementation()
             performSerialComputation(r_new, r_old, x.adj_list, outdegrees);     //deals with one iteration in master (exactly same in children)
             
             double S = accumualteSerialPartialSum(r_new);
-            //printf("The leakage %f\n",S);
-            // NOTE: Since all processes have the smae I think each processor should add 1-S / size in the noraml computation;
-            // the master should not do all this as this is parallellizable
             for (int i = 0; i < size; ++i) {
                 r_new[i] += (double) (1 - S) / size;
             }
             iteration++;    
         
         }while (!converges(r_old, r_new,threshhold) && iteration < MAX_ITERATIONS);
-        serial_mpi_time_counter += MPI_Wtime();
+        parallel_mpi_time_counter += MPI_Wtime();
+        
     }else{
         serial_mpi_time_counter += MPI_Wtime();
         /// All call broadcast
@@ -293,11 +290,10 @@ implementation()
                 }
             }  while (iteration > 0);
         }
-
+        parallel_mpi_time_counter += MPI_Wtime();
     }
 
     
-    parallel_mpi_time_counter += MPI_Wtime();
     if (world_rank == 0){
         printf("\n\n------------------Time Meassurements : ----------------\n\n");
         printf("Serial Execution time: i.e loading graph: %f\n",serial_mpi_time_counter);
