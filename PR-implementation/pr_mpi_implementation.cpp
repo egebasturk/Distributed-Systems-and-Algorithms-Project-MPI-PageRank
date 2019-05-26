@@ -89,8 +89,8 @@ int main(int argc, char** argv) {
     
     /// Master reads and broadcasts size
     if (world_rank == 0) {
-        //x = CreateAdjListFromFile("test_example.txt");
-        x = CreateAdjListFromFile("../GMLParser/web-Google.txt");
+        x = CreateAdjListFromFile("test_example.txt");
+        //x = CreateAdjListFromFile("../GMLParser/web-Google.txt");
         size = x.adj_list.size();
         outdegrees_size = x.vertex_ids.size();
     }
@@ -146,9 +146,9 @@ int main(int argc, char** argv) {
                 counter = 0;
                 j++;
             }
-#if DEBUG_PRINT
+    #if DEBUG_PRINT
             printf("master sent to %d: index %d\n", j, i);
-#endif
+    #endif
             MPI_Send(&x.adj_list[i][0], x.adj_list[i].size(), MPI_INT, j, 0, MPI_COMM_WORLD);
             counter++;
            
@@ -257,3 +257,4 @@ int main(int argc, char** argv) {
     // Finalize the MPI environment.
     MPI_Finalize();
 }
+
