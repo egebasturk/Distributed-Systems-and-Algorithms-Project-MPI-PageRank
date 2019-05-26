@@ -71,6 +71,11 @@ int main(int argc, char** argv) {
     double global_leakage_sum, local_leakage_sum;
     GraphAdjList x;
     
+    double serial_mpi_time_counter;
+    double parallel_mpi_time_counter;
+
+    serial_mpi_time_counter -= MPI_Wtime();
+    parallel_mpi_time_counter -= MPI_Wtime();
     /// Master reads and broadcasts size
     if (world_rank == 0) {
         x = CreateAdjListFromFile("test_example.txt");
@@ -78,11 +83,12 @@ int main(int argc, char** argv) {
         size = x.adj_list.size();
         outdegrees_size = x.vertex_ids.size();
     }
-
+    serial_mpi_time_counter += MPI_Wtime();
     /// All call broadcast
     MPI_Bcast(&size,1, MPI_INT, 0 , MPI_COMM_WORLD);
     MPI_Bcast(&outdegrees_size,1, MPI_INT, 0 , MPI_COMM_WORLD);
 
+    serial_mpi_time_counter -= MPI_Wtime();
     vector<int> outdegrees(size);
     /// convert the outdegree information into contigous mem/array and broadcast it
     if (world_rank == 0){
@@ -92,8 +98,11 @@ int main(int argc, char** argv) {
             outdegrees[i] = x.vertex_ids[i].out_degree_;
         }
     }
+    serial_mpi_time_counter += MPI_Wtime();
+
     MPI_Bcast(&outdegrees.front(),outdegrees_size, MPI_INT, 0 , MPI_COMM_WORLD);
 
+    serial_mpi_time_counter -= MPI_Wtime();
     // Everyone will create this vector, master will fill it
     vector<int> individual_sizes_of_adj_lists_in_graph(size);
     /// Then master continues
@@ -102,6 +111,7 @@ int main(int argc, char** argv) {
             individual_sizes_of_adj_lists_in_graph[j] = x.adj_list[j].size();
         }
     }
+    serial_mpi_time_counter += MPI_Wtime();
      /// All call Broadcast
     MPI_Bcast(&individual_sizes_of_adj_lists_in_graph[0], size, MPI_INT, 0, MPI_COMM_WORLD);
     /// Calculate for load balancing
@@ -171,15 +181,12 @@ int main(int argc, char** argv) {
         //stop children as well
         MPI_Bcast(&stop, 1, MPI_INT, 0 , MPI_COMM_WORLD);
         
-        //output the results
+        /*//output the results
         cout.precision(std::numeric_limits<double>::max_digits10);
         for (int i = 0; i < r_old.size(); i++)
         {
-                /*printf("%d -> ", i  );
-                printf("%f, ", r_old[i]);
-                printf("\n");*/
                 cout << i << "->" << r_old[i] << endl;
-        }
+        }*/
 
     } else {
       
@@ -234,6 +241,14 @@ int main(int argc, char** argv) {
     r_new.clear();
     r_old.clear();
     outdegrees.clear();
+
+    parallel_mpi_time_counter += MPI_Wtime();
+    if (world_rank == 0){
+        printf("------------------Time Meassurements : ----------------\n\n");
+        printf("Serial Execution time: i.e loading graph: %f\n",serial_mpi_time_counter);
+        printf("Parallel Execution time: %f\n",parallel_mpi_time_counter);
+        printf("Difference in the two (real Parallel time): %f\n",parallel_mpi_time_counter - serial_mpi_time_counter);
+    }
     // Finalize the MPI environment.
     MPI_Finalize();
 }
