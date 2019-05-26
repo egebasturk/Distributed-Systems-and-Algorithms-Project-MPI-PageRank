@@ -56,9 +56,9 @@ bool converges(vector<double> &before, vector<double> &after, double threshhold)
 }
 
 
-double accumualtePartialSum( vector<int> partitions, vector<int> displacements, int my_rank,vector<double> r_vector){
+double accumualtePartialSum( vector<double> r_vector){
     double sum = 0;
-    for (int i = displacements[my_rank]; i < displacements[my_rank] + partitions[my_rank]; ++i) {
+    for (int i = 0; i < r_vector.size(); ++i) {
         sum += r_vector[i];
     }
     return sum;
@@ -102,7 +102,7 @@ main()
         
         performIteration(r_new, r_old, x.adj_list, outdegrees);     //deals with one iteration in master (exactly same in children)
         
-        double S = accumulate(r_new.begin(), r_new.end(), 0.0);
+        double S = accumualtePartialSum(r_new);
         
         // NOTE: Since all processes have the smae I think each processor should add 1-S / size in the noraml computation;
         // the master should not do all this as this is parallellizable
