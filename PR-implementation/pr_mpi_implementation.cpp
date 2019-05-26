@@ -13,22 +13,6 @@
 using namespace std;
 using namespace GMLParser;
 
-
-
-//computes the sumation of 1 nodes rank 
-double sum_node_rank(vector<double> currentRanks, vector<vector<int>> adjlist, int node, vector<int> outdegrees){
-    double sum = 0;
-    int size = adjlist[node].size();
-
-    for (unsigned int i = 0; i < size; i++)
-    {   
-        //update sum by run of the neighbour node divided by outdegree of that neighbour
-        sum = sum + currentRanks[adjlist[node][i]]/ (double) outdegrees[adjlist[node][i]]; 
-        
-    }
-    return sum;
-}
-
 //computes 1 iteration of rank values computation
 /*vector<double>*/void  performIteration( vector<double> &r_new,vector<double> &r_old, vector<vector<int>> &adjlist
         , vector<int> &partitions, vector<int> &displacements, vector<int> &individual_sizes_of_adj_lists_in_graph
@@ -61,7 +45,7 @@ bool converges(vector<double> &before, vector<double> &after, double threshhold)
 }
 
 
-double accumualtePartialSum( vector<int> partitions, vector<int> displacements, int my_rank,vector<double> r_vector){
+double accumualtePartialSum( vector<int> &partitions, vector<int> &displacements, int my_rank, vector<double> &r_vector){
     double sum = 0;
     for (int i = displacements[my_rank]; i < displacements[my_rank] + partitions[my_rank]; ++i) {
         sum += r_vector[i];
@@ -107,7 +91,6 @@ int main(int argc, char** argv) {
             //outdegrees[x.vertex_ids[i].id_] = x.vertex_ids[i].out_degree_;
             outdegrees[i] = x.vertex_ids[i].out_degree_;
         }
-        //cout << endl;
     }
     MPI_Bcast(&outdegrees.front(),outdegrees_size, MPI_INT, 0 , MPI_COMM_WORLD);
 
@@ -146,9 +129,7 @@ int main(int argc, char** argv) {
                 counter = 0;
                 j++;
             }
-    #if DEBUG_PRINT
-            printf("master sent to %d: index %d\n", j, i);
-    #endif
+   
             MPI_Send(&x.adj_list[i][0], x.adj_list[i].size(), MPI_INT, j, 0, MPI_COMM_WORLD);
             counter++;
            
@@ -166,8 +147,8 @@ int main(int argc, char** argv) {
             
             local_leakage_sum =  accumualtePartialSum( partitions, displacements,world_rank ,r_new);
             MPI_Allreduce(&local_leakage_sum, &global_leakage_sum, 1, MPI_DOUBLE, MPI_SUM,MPI_COMM_WORLD);
-
-            for (int i = 0; i < r_new.size(); ++i) {
+            /// Everyone adds S to their parts
+            for (int i = displacements[world_rank]; i < displacements[world_rank] + partitions[world_rank]; ++i) {
                     r_new[i] += (double) (1 - global_leakage_sum) / size;
             }
 
@@ -226,7 +207,7 @@ int main(int argc, char** argv) {
                 local_leakage_sum =  accumualtePartialSum( partitions, displacements,world_rank ,r_new);
                 MPI_Allreduce(&local_leakage_sum, &global_leakage_sum, 1, MPI_DOUBLE, MPI_SUM,MPI_COMM_WORLD);
 
-                for (int i = 0; i < r_new.size(); ++i) {
+                for (int i = displacements[world_rank]; i < displacements[world_rank] + partitions[world_rank]; ++i) {
                     r_new[i] += (double) (1 - global_leakage_sum) / size;
                 }
 
@@ -236,7 +217,6 @@ int main(int argc, char** argv) {
                         , NULL, &partitions.front(), &displacements.front(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
         
             }
-          
         }  while (iteration > 0);
         for (int j = 0; j < size; ++j) {
             adjList[j].clear();
