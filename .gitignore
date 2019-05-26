@@ -4,3 +4,5 @@
 *PR-implementation/*.txt
 *PR-implementation/serialTester
 *PR-implementation/tester
+*.gch
+*a.out
