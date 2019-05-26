@@ -1,2 +1,6 @@
 *.idea*
 *cmake-build-debug*
+*PR-implementation/a.out
+*PR-implementation/*.txt
+*PR-implementation/serialTester
+*PR-implementation/tester

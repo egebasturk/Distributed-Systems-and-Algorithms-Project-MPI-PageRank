@@ -48,13 +48,14 @@ void  performIteration( vector<double> &r_new,vector<double> &r_old, vector<vect
 
 //checks if computation has converged or not
 bool converges(vector<double> &before, vector<double> &after, double threshhold){
-    double tmpSum1 = accumulate(before.begin(), before.end(), 0.0);
-    double tmpSum2 = accumulate(after.begin(), after.end(), 0.0);
-    if (fabs(tmpSum1 - tmpSum2) > threshhold)
-        return false;
+    double diff_sum = 0.0;
+    for (unsigned int i = 0; i < before.size(); i++){
+        diff_sum += fabs(before[i] - after[i]);
+    }
+   
+    if ( diff_sum > threshhold ) return false;
     return true;
 }
-
 
 double accumualtePartialSum( vector<double> r_vector){
     double sum = 0;
@@ -74,8 +75,8 @@ main()
     int i;
 
     int size,outdegrees_size;
-    x = CreateAdjListFromFile("test_example.txt");
-    //x = CreateAdjListFromFile("../GMLParser/web-Google.txt");
+    //x = CreateAdjListFromFile("test_example.txt");
+    x = CreateAdjListFromFile("../GMLParser/web-Google.txt");
     size = x.adj_list.size();
     outdegrees_size = x.vertex_ids.size();
 
@@ -92,7 +93,7 @@ main()
     vector<double> r_old(size); 
 
     for(i = 0; i < size; i++){
-        r_old[i] = (double)1/size;
+        r_new[i] = (double)1/size;
     }
 
     int iteration = 0;
@@ -100,16 +101,17 @@ main()
 
     do{
         
+        r_old = r_new;
         performIteration(r_new, r_old, x.adj_list, outdegrees);     //deals with one iteration in master (exactly same in children)
         
         double S = accumualtePartialSum(r_new);
-        printf("The leakage %f\n",S);
+        //printf("The leakage %f\n",S);
         // NOTE: Since all processes have the smae I think each processor should add 1-S / size in the noraml computation;
         // the master should not do all this as this is parallellizable
         for (int i = 0; i < size; ++i) {
             r_new[i] += (double) (1 - S) / size;
         }
-        iteration++;
+        iteration++;    
     
     }while (!converges(r_old, r_new,threshhold) && iteration < MAX_ITERATIONS);
     
@@ -117,7 +119,7 @@ main()
     cout.precision(std::numeric_limits<double>::max_digits10);
     for (int i = 0; i < r_new.size(); i++)
     {
-            cout << i << "->" << r_new  [i] << endl;
+            cout << i << "->" << r_new[i]<< " "<< r_old[i] << endl;
     }
     return 0;
 }

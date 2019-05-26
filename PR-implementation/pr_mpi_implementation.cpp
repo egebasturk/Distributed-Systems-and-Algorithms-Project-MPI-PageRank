@@ -35,16 +35,14 @@ using namespace GMLParser;
 
 //checks if computation has converged or not
 bool converges(vector<double> &before, vector<double> &after, double threshhold){
-    /*for (unsigned int i = 0; i < before.size(); i++){
-        if ( fabs(before[i] - after[i]) > threshhold ) return false;
-    }*/
-    double tmpSum1 = accumulate(before.begin(), before.end(), 0.0);
-    double tmpSum2 = accumulate(after.begin(), after.end(), 0.0);
-    if (fabs(tmpSum1 - tmpSum2) > threshhold)
-        return false;
+    double diff_sum = 0.0;
+    for (unsigned int i = 0; i < before.size(); i++){
+        diff_sum += fabs(before[i] - after[i]);
+    }
+   
+    if ( diff_sum > threshhold ) return false;
     return true;
 }
-
 
 double accumualtePartialSum( vector<int> &partitions, vector<int> &displacements, int my_rank, vector<double> &r_vector){
     double sum = 0;
@@ -81,8 +79,8 @@ implementation()
     parallel_mpi_time_counter -= MPI_Wtime();
     /// Master reads and broadcasts size
     if (world_rank == 0) {
-        x = CreateAdjListFromFile("test_example.txt");
-        //x = CreateAdjListFromFile("../GMLParser/web-Google.txt");
+        //x = CreateAdjListFromFile("test_example.txt");
+        x = CreateAdjListFromFile("../GMLParser/web-Google.txt");
         size = x.adj_list.size();
         outdegrees_size = x.vertex_ids.size();
     }
@@ -159,10 +157,9 @@ implementation()
                     , world_rank, outdegrees);     //deals with one iteration in master (exactly same in children)
 
             local_leakage_sum =  accumualtePartialSum( partitions, displacements,world_rank ,r_new);
-           
-
             MPI_Allreduce(&local_leakage_sum, &global_leakage_sum, 1, MPI_DOUBLE, MPI_SUM,MPI_COMM_WORLD);
-            printf("The leakage %f\n",global_leakage_sum);
+            
+            //printf("The leakage %f\n",global_leakage_sum);
             /// Everyone adds S to their parts
             for (int i = displacements[world_rank]; i < displacements[world_rank] + partitions[world_rank]; ++i) {
                 r_new[i] += (double) (1 - global_leakage_sum) / size;
@@ -190,7 +187,7 @@ implementation()
         cout.precision(std::numeric_limits<double>::max_digits10);
         for (int i = 0; i < r_old.size(); i++)
         {
-                cout << i << "->" << r_old[i] <<"\t"<<r_new[i]<< endl;
+                cout << i << "->" << r_old[i]<< endl;
         }
 
     } else {
