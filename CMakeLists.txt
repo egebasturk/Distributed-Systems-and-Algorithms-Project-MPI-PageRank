@@ -23,6 +23,8 @@ link_libraries(m)
 add_executable(Distributed_Systems_and_Algorithms_Project_MPI_PageRank PR-implementation/pr_mpi_implementation.cpp
         GMLParser/gml_parser.cpp GMLParser/network_graph.cpp)
 add_executable(gmltest GMLParser/gml_parser.cpp GMLParser/network_graph.cpp GMLParser/parse_test.cpp)
+add_executable(serialtest PR-implementation/serial.cpp
+        GMLParser/gml_parser.cpp GMLParser/network_graph.cpp)
 
 
 # Link against MPI

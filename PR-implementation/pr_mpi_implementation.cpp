@@ -72,8 +72,8 @@ implementation()
     double global_leakage_sum, local_leakage_sum;
     GraphAdjList x;
     
-    double serial_mpi_time_counter;
-    double parallel_mpi_time_counter;
+    double serial_mpi_time_counter = 0;
+    double parallel_mpi_time_counter = 0;
 
     serial_mpi_time_counter -= MPI_Wtime();
     parallel_mpi_time_counter -= MPI_Wtime();
