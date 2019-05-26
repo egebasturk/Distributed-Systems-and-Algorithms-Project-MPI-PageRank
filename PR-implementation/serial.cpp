@@ -7,12 +7,15 @@
 #include <numeric>
 #include <limits>
 #include <iostream>
+#include <chrono> 
+#include <bits/stdc++.h> 
 #define DEBUG_PRINT 0
 #define BETA 0.8f
 #define FLAG_ITERATION_STOP -27
 #define MAX_ITERATIONS 50  
 
 using namespace std;
+using namespace std::chrono; 
 using namespace GMLParser;
 
 //computes the sumation of 1 nodes rank 
@@ -74,6 +77,10 @@ main()
     double global_leakage_sum;
     int i;
 
+    time_t start, end; 
+    time(&start); 
+    ios_base::sync_with_stdio(false); 
+    
     int size,outdegrees_size;
     //x = CreateAdjListFromFile("test_example.txt");
     x = CreateAdjListFromFile("../GMLParser/web-Google.txt");
@@ -116,11 +123,17 @@ main()
     }while (!converges(r_old, r_new,threshhold) && iteration < MAX_ITERATIONS);
     
    
-    cout.precision(std::numeric_limits<double>::max_digits10);
+    /*cout.precision(std::numeric_limits<double>::max_digits10);
     for (int i = 0; i < r_new.size(); i++)
     {
             cout << i << "->" << r_new[i]<< " "<< r_old[i] << endl;
-    }
+    }*/
+
+    time(&end); 
+    double time_taken = double(end - start); 
+    printf("\n\n------------------Time Meassurements : ----------------\n\n");
+    printf("Serial Execution time:  %f\n",time_taken);
+
     return 0;
 }
 
