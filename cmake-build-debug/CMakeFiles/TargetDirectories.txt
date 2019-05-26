@@ -1,0 +1,4 @@
+/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/CMakeFiles/Distributed_Systems_and_Algorithms_Project_MPI_PageRank.dir
+/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/CMakeFiles/gmltest.dir

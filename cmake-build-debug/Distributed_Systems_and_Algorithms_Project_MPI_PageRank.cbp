@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="Distributed_Systems_and_Algorithms_Project_MPI_PageRank"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Distributed_Systems_and_Algorithms_Project_MPI_PageRank">
+				<Option output="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Distributed_Systems_and_Algorithms_Project_MPI_PageRank" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/mpich"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 Distributed_Systems_and_Algorithms_Project_MPI_PageRank"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Distributed_Systems_and_Algorithms_Project_MPI_PageRank/fast">
+				<Option output="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Distributed_Systems_and_Algorithms_Project_MPI_PageRank" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/mpich"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 Distributed_Systems_and_Algorithms_Project_MPI_PageRank/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="gmltest">
+				<Option output="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/gmltest" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/mpich"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 gmltest"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="gmltest/fast">
+				<Option output="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/gmltest" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/mpich"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 gmltest/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/GMLParser/gml_parser.cpp">
+			<Option target="Distributed_Systems_and_Algorithms_Project_MPI_PageRank"/>
+			<Option target="gmltest"/>
+		</Unit>
+		<Unit filename="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/GMLParser/gml_parser.h">
+			<Option target="Distributed_Systems_and_Algorithms_Project_MPI_PageRank"/>
+			<Option target="gmltest"/>
+		</Unit>
+		<Unit filename="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/GMLParser/network_graph.cpp">
+			<Option target="Distributed_Systems_and_Algorithms_Project_MPI_PageRank"/>
+			<Option target="gmltest"/>
+		</Unit>
+		<Unit filename="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/GMLParser/network_graph.h">
+			<Option target="Distributed_Systems_and_Algorithms_Project_MPI_PageRank"/>
+			<Option target="gmltest"/>
+		</Unit>
+		<Unit filename="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/GMLParser/parse_test.cpp">
+			<Option target="gmltest"/>
+		</Unit>
+		<Unit filename="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/PR-implementation/pr_mpi_implementation.cpp">
+			<Option target="Distributed_Systems_and_Algorithms_Project_MPI_PageRank"/>
+		</Unit>
+		<Unit filename="/home/oz/repos/Distributed-Systems-and-Algorithms-Project-MPI-PageRank/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

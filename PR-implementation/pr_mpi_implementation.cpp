@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <math.h>
 #include <numeric>
+#include <iostream>
 #include <limits>
 #define DEBUG_PRINT 0
 #define BETA 0.8f
@@ -53,8 +54,10 @@ double accumualtePartialSum( vector<int> &partitions, vector<int> &displacements
     return sum;
 }
 
-int main(int argc, char** argv) {
-  // Initialize the MPI environment
+void
+implementation()
+{
+    // Initialize the MPI environment
     MPI_Init(NULL, NULL);
 
     double threshhold = (double)1/100000;
@@ -70,11 +73,10 @@ int main(int argc, char** argv) {
     int size, colSize,outdegrees_size;
     double global_leakage_sum, local_leakage_sum;
     GraphAdjList x;
-    
+
     /// Master reads and broadcasts size
     if (world_rank == 0) {
-        x = CreateAdjListFromFile("test_example.txt");
-        //x = CreateAdjListFromFile("../GMLParser/web-Google.txt");
+        x = CreateAdjListFromFile("../GMLParser/web-Google.txt");
         size = x.adj_list.size();
         outdegrees_size = x.vertex_ids.size();
     }
@@ -102,11 +104,11 @@ int main(int argc, char** argv) {
             individual_sizes_of_adj_lists_in_graph[j] = x.adj_list[j].size();
         }
     }
-     /// All call Broadcast
+    /// All call Broadcast
     MPI_Bcast(&individual_sizes_of_adj_lists_in_graph[0], size, MPI_INT, 0, MPI_COMM_WORLD);
     /// Calculate for load balancing
     int tmp_vector_sum = accumulate(individual_sizes_of_adj_lists_in_graph.begin(),
-            individual_sizes_of_adj_lists_in_graph.end(), 0);
+                                    individual_sizes_of_adj_lists_in_graph.end(), 0);
 
     vector<int> partitions(size, size / world_size);
     vector<int> displacements(size);
@@ -123,16 +125,16 @@ int main(int argc, char** argv) {
     {
         /// send the partial matrix
         for (int i = displacements[1], j = 1, counter = 0; i < x.adj_list.size(); ++i)
-        {   
+        {
             if (counter >= partitions[j])
             {
                 counter = 0;
                 j++;
             }
-   
+
             MPI_Send(&x.adj_list[i][0], x.adj_list[i].size(), MPI_INT, j, 0, MPI_COMM_WORLD);
             counter++;
-           
+
         }
         int iteration = 1;
         int stop = FLAG_ITERATION_STOP;
@@ -140,51 +142,51 @@ int main(int argc, char** argv) {
         do{
             MPI_Bcast(&iteration, 1, MPI_INT, 0 , MPI_COMM_WORLD);              //tell children if they should stop or not
             MPI_Bcast(&r_old.front(), size, MPI_DOUBLE, 0 , MPI_COMM_WORLD);    //let all have the rank vector
-            
+
             performIteration(r_new, r_old, x.adj_list, partitions
                     , displacements, individual_sizes_of_adj_lists_in_graph
                     , world_rank, outdegrees);     //deals with one iteration in master (exactly same in children)
-            
+
             local_leakage_sum =  accumualtePartialSum( partitions, displacements,world_rank ,r_new);
             MPI_Allreduce(&local_leakage_sum, &global_leakage_sum, 1, MPI_DOUBLE, MPI_SUM,MPI_COMM_WORLD);
             /// Everyone adds S to their parts
             for (int i = displacements[world_rank]; i < displacements[world_rank] + partitions[world_rank]; ++i) {
-                    r_new[i] += (double) (1 - global_leakage_sum) / size;
+                r_new[i] += (double) (1 - global_leakage_sum) / size;
             }
 
             /// Gather gathers onto the r_old so it will be updated automatically
             MPI_Gatherv(&r_new.front(), partitions[0], MPI_DOUBLE, &r_old.front(), &partitions.front()
                     , &displacements.front(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
-            
+
             /*double S = accumulate(r_old.begin(), r_old.end(), 0.0);
-           
+
             // NOTE: Since all processes have the smae I think each processor should add 1-S / size in the noraml computation;
             // the master should not do all this as this is parallellizable
             for (int i = 0; i < size; ++i) {
                 r_old[i] += (double) (1 - S) / size;
             }*/
             iteration++;
-       
-            
+
+
         }while (!converges(r_old, r_new,threshhold) && iteration < MAX_ITERATIONS);
-        
+
         //stop children as well
         MPI_Bcast(&stop, 1, MPI_INT, 0 , MPI_COMM_WORLD);
-        
+
         //output the results
         cout.precision(std::numeric_limits<double>::max_digits10);
         for (int i = 0; i < r_old.size(); i++)
         {
-                /*printf("%d -> ", i  );
-                printf("%f, ", r_old[i]);
-                printf("\n");*/
-                cout << i << "->" << r_old[i] << endl;
+            /*printf("%d -> ", i  );
+            printf("%f, ", r_old[i]);
+            printf("\n");*/
+            cout << i << "->" << r_old[i] << endl;
         }
 
     } else {
-      
+
         vector<vector<int>>adjList(size);
-        
+
         ///receive the partial matrix
         for (int i = displacements[world_rank]; i < displacements[world_rank] + partitions[world_rank]; i++){
             adjList[i] = vector<int>(individual_sizes_of_adj_lists_in_graph[i]);
@@ -192,14 +194,14 @@ int main(int argc, char** argv) {
         }
 
         int iteration = 1;
-        
+
         do{
             MPI_Bcast(&iteration, 1, MPI_INT, 0 , MPI_COMM_WORLD);
 
             if (iteration > 0)
             {
                 MPI_Bcast(&r_old.front(), size, MPI_DOUBLE, 0 , MPI_COMM_WORLD);
-                 
+
                 performIteration(r_new, r_old, adjList, partitions
                         , displacements, individual_sizes_of_adj_lists_in_graph
                         , world_rank, outdegrees);
@@ -212,29 +214,19 @@ int main(int argc, char** argv) {
                 }
 
                 //MPI_Gather(&r_new[displacements[world_rank]], partitions[world_rank]
-                        //, MPI_DOUBLE, &r_old.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);
+                //, MPI_DOUBLE, &r_old.front(), msgSize, MPI_DOUBLE, 0,MPI_COMM_WORLD);
                 MPI_Gatherv(&r_new[displacements[world_rank]], partitions[world_rank], MPI_DOUBLE
                         , NULL, &partitions.front(), &displacements.front(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
-        
+
             }
         }  while (iteration > 0);
-        for (int j = 0; j < size; ++j) {
-            adjList[j].clear();
-        }
-        adjList.clear();
     }
 
-    if (world_rank == 0)
-    {
-        x.freeGrap();
-    }
-    partitions.clear();
-    displacements.clear();
-    individual_sizes_of_adj_lists_in_graph.clear();
-    r_new.clear();
-    r_old.clear();
-    outdegrees.clear();
     // Finalize the MPI environment.
     MPI_Finalize();
+}
+
+int main(int argc, char** argv) {
+ implementation();
 }
 
