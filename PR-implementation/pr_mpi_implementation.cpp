@@ -184,11 +184,11 @@ implementation()
         //stop children as well
         MPI_Bcast(&stop, 1, MPI_INT, 0 , MPI_COMM_WORLD);
 
-        cout.precision(std::numeric_limits<double>::max_digits10);
+        /*cout.precision(std::numeric_limits<double>::max_digits10);
         for (int i = 0; i < r_old.size(); i++)
         {
                 cout << i << "->" << r_old[i]<< endl;
-        }
+        }*/
 
     } else {
 
