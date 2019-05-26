@@ -81,7 +81,8 @@ implementation()
     parallel_mpi_time_counter -= MPI_Wtime();
     /// Master reads and broadcasts size
     if (world_rank == 0) {
-        x = CreateAdjListFromFile("../GMLParser/web-Google.txt");
+        x = CreateAdjListFromFile("test_example.txt");
+        //x = CreateAdjListFromFile("../GMLParser/web-Google.txt");
         size = x.adj_list.size();
         outdegrees_size = x.vertex_ids.size();
     }
@@ -158,7 +159,10 @@ implementation()
                     , world_rank, outdegrees);     //deals with one iteration in master (exactly same in children)
 
             local_leakage_sum =  accumualtePartialSum( partitions, displacements,world_rank ,r_new);
+           
+
             MPI_Allreduce(&local_leakage_sum, &global_leakage_sum, 1, MPI_DOUBLE, MPI_SUM,MPI_COMM_WORLD);
+            printf("The leakage %f\n",global_leakage_sum);
             /// Everyone adds S to their parts
             for (int i = displacements[world_rank]; i < displacements[world_rank] + partitions[world_rank]; ++i) {
                 r_new[i] += (double) (1 - global_leakage_sum) / size;
@@ -183,15 +187,11 @@ implementation()
         //stop children as well
         MPI_Bcast(&stop, 1, MPI_INT, 0 , MPI_COMM_WORLD);
 
-        /*//output the results
         cout.precision(std::numeric_limits<double>::max_digits10);
         for (int i = 0; i < r_old.size(); i++)
         {
-            /*printf("%d -> ", i  );
-            printf("%f, ", r_old[i]);
-            printf("\n");*/
-       //     cout << i << "->" << r_old[i] << endl;
-        //}
+                cout << i << "->" << r_old[i] <<"\t"<<r_new[i]<< endl;
+        }
 
     } else {
 
@@ -245,7 +245,7 @@ implementation()
 
     parallel_mpi_time_counter += MPI_Wtime();
     if (world_rank == 0){
-        printf("------------------Time Meassurements : ----------------\n\n");
+        printf("\n\n------------------Time Meassurements : ----------------\n\n");
         printf("Serial Execution time: i.e loading graph: %f\n",serial_mpi_time_counter);
         printf("Parallel Execution time: %f\n",parallel_mpi_time_counter);
         printf("Difference in the two (real Parallel time): %f\n",parallel_mpi_time_counter - serial_mpi_time_counter);

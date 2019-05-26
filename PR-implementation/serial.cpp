@@ -40,7 +40,7 @@ void  performIteration( vector<double> &r_new,vector<double> &r_old, vector<vect
             if (outdegrees[adjlist[i][j]] != 0)
                 sum += r_old[adjlist[i][j]] / (double) outdegrees[adjlist[i][j]];
         }
-        r_new[i] = sum * BETA;
+        r_new[i] = sum;// * BETA;
        
     }
 }
@@ -74,8 +74,8 @@ main()
     int i;
 
     int size,outdegrees_size;
-    //x = CreateAdjListFromFile("test_example.txt");
-    x = CreateAdjListFromFile("../GMLParser/web-Google.txt");
+    x = CreateAdjListFromFile("test_example.txt");
+    //x = CreateAdjListFromFile("../GMLParser/web-Google.txt");
     size = x.adj_list.size();
     outdegrees_size = x.vertex_ids.size();
 
@@ -103,7 +103,7 @@ main()
         performIteration(r_new, r_old, x.adj_list, outdegrees);     //deals with one iteration in master (exactly same in children)
         
         double S = accumualtePartialSum(r_new);
-        
+        printf("The leakage %f\n",S);
         // NOTE: Since all processes have the smae I think each processor should add 1-S / size in the noraml computation;
         // the master should not do all this as this is parallellizable
         for (int i = 0; i < size; ++i) {
