@@ -146,7 +146,7 @@ implementation()
         parallel_mpi_time_counter += MPI_Wtime();
         
     }else{
-        serial_mpi_time_counter += MPI_Wtime();
+        //serial_mpi_time_counter += MPI_Wtime();
         /// All call broadcast
         MPI_Bcast(&size,1, MPI_INT, 0 , MPI_COMM_WORLD);
         MPI_Bcast(&outdegrees_size,1, MPI_INT, 0 , MPI_COMM_WORLD);
